@@ -1,21 +1,9 @@
 {
   "model_name": "Customer Churn Classifier",
-  "model_version": "1.0.0-pengganti",
+  "model_version": "1.0.0",
   "algorithm": "GradientBoostingClassifier (scikit-learn Pipeline)",
   "sklearn_version": "1.9.1",
-  "note": "Model pengganti sementara; ganti dengan file dari fasilitator.",
-  "feature_order": [
-    "tenure_months",
-    "monthly_charges",
-    "total_charges",
-    "num_complaints",
-    "support_calls",
-    "region",
-    "segment",
-    "contract_type",
-    "payment_method",
-    "internet_service"
-  ],
+  "target": "churn (1 = pelanggan berhenti berlangganan)",
   "numeric_features": [
     "tenure_months",
     "monthly_charges",
@@ -24,6 +12,18 @@
     "support_calls"
   ],
   "categorical_features": [
+    "region",
+    "segment",
+    "contract_type",
+    "payment_method",
+    "internet_service"
+  ],
+  "feature_order": [
+    "tenure_months",
+    "monthly_charges",
+    "total_charges",
+    "num_complaints",
+    "support_calls",
     "region",
     "segment",
     "contract_type",
@@ -98,8 +98,8 @@
     ]
   },
   "holdout_metrics": {
-    "roc_auc": 0.7885,
-    "accuracy": 0.7133,
-    "f1": 0.5657
+    "roc_auc": 0.7887,
+    "accuracy": 0.7183,
+    "f1": 0.5786
   }
 }

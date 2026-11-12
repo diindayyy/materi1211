@@ -1,0 +1,6 @@
+streamlit>=1.40
+pandas>=2.2
+plotly>=5.22
+matplotlib>=3.8
+scikit-learn==1.9.1   # sama dengan sklearn_version di models/model_metadata.json
+joblib>=1.4
