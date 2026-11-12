@@ -1,0 +1,4 @@
+customer_id,region,segment,contract_type,payment_method,internet_service,tenure_months,monthly_charges,total_charges,num_complaints,support_calls
+UJI-0001,Jawa,Retail,Bulanan,E-Wallet,Fiber,5,450000,2250000,3,4
+UJI-0002,Sumatera,UMKM,Mingguan,Transfer Bank,DSL,12,300000,3600000,1,2
+UJI-0003,Sulawesi,Korporat,Tahunan,Kartu Kredit,Mobile Broadband,30,520000,15600000,0,1
