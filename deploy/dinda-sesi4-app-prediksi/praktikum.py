@@ -13,6 +13,8 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # agar folder utils bisa di-import
 from utils.model_utils import load_metadata, load_model, predict, validate_input
 
+from eda import tampilkan_eda  # tab tambahan: EDA hasil prediksi (gaya Sesi 2)
+
 
 # 1) LOAD MODEL — sekali saja, disimpan di cache
 @st.cache_resource
@@ -36,7 +38,12 @@ with st.expander("ℹ️ Informasi model final", expanded=False):
     st.caption("Model tidak dilatih ulang di aplikasi ini; aplikasi hanya melakukan inference.")
 
 COLOR = {"Rendah": "🟢", "Sedang": "🟡", "Tinggi": "🔴"}
-tab_single, tab_batch = st.tabs(["👤 Prediksi satu pelanggan", "📂 Prediksi batch (CSV)"])
+tab_eda, tab_single, tab_batch = st.tabs(["📊 EDA Prediksi", "👤 Prediksi satu pelanggan",
+                                          "📂 Prediksi batch (CSV)"])
+
+# 0) EDA HASIL PREDIKSI — dipanggil lebih dulu, karena tab batch bisa memanggil st.stop()
+with tab_eda:
+    tampilkan_eda()
 
 # 2) PREDIKSI SATU PELANGGAN — input lewat form
 with tab_single:
