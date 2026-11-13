@@ -1,5 +1,5 @@
 # sesi7/latihan_sesi7.py — app_dash_callback.py + Latihan Mandiri Sesi 7
-# Jalankan: python sesi7/latihan_sesi7.py  lalu buka http://127.0.0.1:8052
+# Jalankan: python sesi7/latihan_sesi7.py  lalu buka http://127.0.0.1:8057
 # 1. dcc.Checklist internet_service, dihubungkan ke filter_df()
 # 2. Output kelima pada callback utama: histogram tenure yang ikut terfilter
 # 3. Klik titik scatter -> detail pelanggan (ID, region, kontrak, keluhan) di html.Div
@@ -25,7 +25,24 @@ LAYANAN = sorted(df.internet_service.unique())
 app = Dash(__name__, title="Dash Callback — Latihan")
 app.layout = html.Div(style={"maxWidth": "1200px", "margin": "auto", "fontFamily": "Arial",
                              "padding": "0 16px"}, children=[
-    html.H1("Dash Callback System — Dashboard Churn"),
+    html.H1("Latihan Mandiri Sesi 7 — Dash Callback System"),
+    html.Details(open=True, style={"background": "#F4F6FA", "borderRadius": "10px",
+                                   "padding": "10px 14px", "marginBottom": "16px"}, children=[
+        html.Summary("📝 Daftar soal dan letak jawabannya", style={"fontWeight": "bold",
+                                                                 "cursor": "pointer"}),
+        html.Ol(style={"margin": "8px 0 0 0"}, children=[
+            html.Li("✅ Checklist Layanan internet (dcc.Checklist) di panel filter, terhubung ke "
+                    "filter_df() — KPI, chart, dan tabel ikut berubah."),
+            html.Li("✅ Output kelima di callback utama: histogram Distribusi tenure (terfilter), "
+                    "chart ketiga."),
+            html.Li("✅ Klik satu titik di scatter → detail pelanggan (ID, region, kontrak, keluhan) "
+                    "muncul di kotak abu-abu di bawah chart."),
+            html.Li("✅ dcc.Store id=store-data menyimpan hasil filter sekali (to_dict('records')); "
+                    "callback tabel membaca dari store ini."),
+            html.Li("✅ Tantangan: Box/Lasso Select di scatter (mode seleksi sudah aktif, tinggal "
+                    "drag) → tabel hanya berisi titik terpilih."),
+        ]),
+    ]),
 
     # ---- Panel filter ----
     html.Div(style={"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(220px, 1fr))",
@@ -188,4 +205,4 @@ def tampil_detail(click):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8052)
+    app.run(debug=True, dev_tools_ui=False, port=8057)  # panel debug disembunyikan
