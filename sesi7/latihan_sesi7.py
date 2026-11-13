@@ -3,7 +3,8 @@
 # 1. dcc.Checklist internet_service, dihubungkan ke filter_df()
 # 2. Output kelima pada callback utama: histogram tenure yang ikut terfilter
 # 3. Klik titik scatter -> detail pelanggan (ID, region, kontrak, keluhan) di html.Div
-# 4. dcc.Store menyimpan hasil filter (to_dict("records")) sekali; callback tabel membaca dari store
+# 4. dcc.Store menyimpan DataFrame hasil filter (to_dict("records")) SEKALI di callback khusus;
+#    KPI, chart, dan callback tabel membaca dari store (pd.DataFrame(data)), tidak memfilter ulang
 # 5. Tantangan: selectedData (box/lasso select) pada scatter memfilter tabel
 from pathlib import Path
 
@@ -38,8 +39,11 @@ app.layout = html.Div(style={"maxWidth": "1200px", "margin": "auto", "fontFamily
                     "chart ketiga."),
             html.Li("✅ Klik satu titik di scatter → detail pelanggan (ID, region, kontrak, keluhan) "
                     "muncul di kotak abu-abu di bawah chart."),
-            html.Li("✅ dcc.Store id=store-data menyimpan hasil filter sekali (to_dict('records')); "
-                    "callback tabel membaca dari store ini."),
+            html.Li("✅ dcc.Store id=store-data: callback 'simpan_hasil_filter' memfilter SEKALI lalu "
+                    "menyimpan DataFrame hasil filter (to_dict('records')). Callback KPI/chart dan "
+                    "callback tabel membaca dari store dengan pd.DataFrame(data). Isi store terlihat "
+                    "di baris '📦 dcc.Store' di atas KPI; tombol '⬇️ Unduh CSV' menyimpan isi "
+                    "store itu sebagai file CSV."),
             html.Li("✅ Tantangan: Box/Lasso Select di scatter (mode seleksi sudah aktif, tinggal "
                     "drag) → tabel hanya berisi titik terpilih."),
         ]),
@@ -73,7 +77,18 @@ app.layout = html.Div(style={"maxWidth": "1200px", "margin": "auto", "fontFamily
         html.Span(id="info-keluhan", style={"color": "#666"}),
     ]),
     dcc.Store(id="store-keluhan", data=0),
-    dcc.Store(id="store-data"),  # Latihan 4: hasil filter disimpan sekali
+    dcc.Store(id="store-data"),  # Latihan 4: DataFrame hasil filter disimpan sekali di sini
+
+    # ---- Latihan 4: bukti isi store + unduh CSV langsung dari store ----
+    html.Div(style={"marginTop": "12px", "padding": "8px 12px", "border": "1px dashed #9AA5B8",
+                    "borderRadius": "8px", "display": "flex", "flexWrap": "wrap", "gap": "10px",
+                    "alignItems": "center", "justifyContent": "space-between"}, children=[
+        html.Div(id="info-store", style={"color": "#333", "fontSize": "14px", "flex": "1 1 420px"}),
+        html.Button("⬇️ Unduh CSV hasil filter (dari dcc.Store)", id="btn-unduh", n_clicks=0,
+                    style={"background": "#2F5DA8", "color": "white", "border": 0,
+                           "padding": "8px 14px", "borderRadius": "8px", "cursor": "pointer"}),
+        dcc.Download(id="dl-csv"),
+    ]),
 
     # ---- KPI ----
     html.Div(id="kpi", style={"display": "flex", "flexWrap": "wrap", "gap": "12px",
@@ -134,18 +149,40 @@ def terapkan_atau_reset(n_apply, n_reset, nilai):
     return nilai, no_update, no_update, no_update, no_update, no_update, no_update
 
 
-# 3) Callback utama: filter -> KPI, 3 chart (Latihan 2: histogram), info, store data (Latihan 4)
-@callback(Output("kpi", "children"), Output("g-bar", "figure"), Output("g-scatter", "figure"),
-          Output("g-hist", "figure"), Output("info-keluhan", "children"),
-          Output("store-data", "data"),
+# 3a) Latihan 4: SATU-SATUNYA tempat filter dijalankan -> DataFrame hasil filter disimpan di store
+@callback(Output("store-data", "data"), Output("info-keluhan", "children"),
+          Output("info-store", "children"),
           Input("dd-region", "value"), Input("dd-segment", "value"), Input("rd-kontrak", "value"),
           Input("rs-tenure", "value"), Input("store-keluhan", "data"), Input("ck-internet", "value"))
-def update_dashboard(region, segment, kontrak, tenure, min_keluhan, layanan):
+def simpan_hasil_filter(region, segment, kontrak, tenure, min_keluhan, layanan):
     d = filter_df(region, segment, kontrak, tenure, min_keluhan, layanan)
+    records = d.assign(signup_date=d.signup_date.dt.strftime("%Y-%m-%d")).to_dict("records")
     info = f"Filter keluhan aktif: ≥ {min_keluhan}"
+    info_store = [html.B("📦 dcc.Store 'store-data': "),
+                  f"{len(records):,} baris × {d.shape[1]} kolom hasil filter disimpan sekali "
+                  "(to_dict('records')); KPI, chart, dan tabel di bawah membaca dari store ini."]
+    return records, info, info_store
+
+
+# 3c) Latihan 4: tombol unduh — DataFrame dibaca dari store lalu dikirim sebagai CSV
+@callback(Output("dl-csv", "data"), Input("btn-unduh", "n_clicks"), State("store-data", "data"),
+          prevent_initial_call=True)
+def unduh_csv(n, data):
+    if not data:
+        raise PreventUpdate  # store kosong: tidak ada yang diunduh
+    d = pd.DataFrame(data)
+    return dcc.send_data_frame(d.to_csv, "hasil_filter_churn.csv", index=False)
+
+
+# 3b) Callback utama membaca DataFrame dari store -> KPI, 3 chart (Latihan 2: histogram)
+@callback(Output("kpi", "children"), Output("g-bar", "figure"), Output("g-scatter", "figure"),
+          Output("g-hist", "figure"),
+          Input("store-data", "data"))
+def update_dashboard(data):
+    d = pd.DataFrame(data or [])  # Latihan 4: baca dari store, tidak memfilter ulang
     if d.empty:
         kosong = px.scatter(title="Tidak ada data untuk filter ini")
-        return [html.Div("Data kosong", style=KARTU)], kosong, kosong, kosong, info, []
+        return [html.Div("Data kosong", style=KARTU)], kosong, kosong, kosong
 
     def kartu(j, v):
         return html.Div([html.Small(j), html.H2(v, style={"margin": "4px 0"})], style=KARTU)
@@ -168,15 +205,18 @@ def update_dashboard(region, segment, kontrak, tenure, min_keluhan, layanan):
                         opacity=0.7, color_discrete_map=WARNA, template="plotly_white",
                         title="Distribusi tenure (terfilter)",
                         labels={"tenure_months": "Tenure (bulan)", "status": "Status"})
-    return kpi, bar, sc, hist, info, d[TABEL_COLS].to_dict("records")
+    return kpi, bar, sc, hist
 
 
-# 4) Tabel membaca dari store; klik batang (region) atau seleksi scatter (Latihan 5) memfilter tabel
+# 4) Tabel membaca dari store (Latihan 4); klik batang (region) atau seleksi scatter (Latihan 5)
 @callback(Output("tbl", "data"), Output("judul-tabel", "children"),
           Input("store-data", "data"), Input("g-bar", "clickData"),
           Input("g-scatter", "selectedData"))
 def update_tabel(data, click, selected):
-    d = pd.DataFrame(data or [], columns=TABEL_COLS)
+    d = pd.DataFrame(data or [])
+    if d.empty:
+        return [], "Detail pelanggan (data kosong)"
+    d = d[TABEL_COLS]
     judul = "Detail pelanggan (semua region terpilih)"
     if ctx.triggered_id == "g-bar" and click:
         reg = click["points"][0]["x"]
