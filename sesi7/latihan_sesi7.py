@@ -23,6 +23,7 @@ TABEL_COLS = ["customer_id", "region", "segment", "contract_type", "internet_ser
 LAYANAN = sorted(df.internet_service.unique())
 
 app = Dash(__name__, title="Dash Callback — Latihan")
+server = app.server  # untuk deployment WSGI (PythonAnywhere / gunicorn)
 app.layout = html.Div(style={"maxWidth": "1200px", "margin": "auto", "fontFamily": "Arial",
                              "padding": "0 16px"}, children=[
     html.H1("Latihan Mandiri Sesi 7 — Dash Callback System"),

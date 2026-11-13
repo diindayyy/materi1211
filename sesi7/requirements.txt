@@ -1,0 +1,4 @@
+# Library minimum untuk menjalankan sesi7/latihan_sesi7.py (Dash) di PythonAnywhere
+dash>=2.17
+pandas>=2.2
+plotly>=5.22
